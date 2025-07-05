@@ -1,0 +1,68 @@
+-- Serviços principais
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- Lista de armas válidas (nomes exatos)
+local validWeapons = {
+	["ax"] = true,
+	["pickaxe"] = true,
+	["Vampire Knife"] = true,
+	["Shovel"] = true,
+	["Jade Sword"] = true,
+	["Excalibur"] = true
+}
+
+-- Verifica se uma arma válida está equipada
+local function isValidWeaponEquipped()
+	Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local tool = Character:FindFirstChildOfClass("Tool")
+	if tool and validWeapons[tool.Name] then
+		return true
+	end
+	return false
+end
+
+-- Captura o clique no botão Balanço
+local function waitForUserClick()
+	print("⏳ Aguarde 3 segundos e toque no botão Balanço...")
+	wait(3)
+
+	local clicked = false
+	local position = nil
+
+	local conn
+	conn = UserInputService.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			if not clicked then
+				position = input.Position
+				clicked = true
+				conn:Disconnect()
+				print("📍 Coordenadas capturadas: ", position)
+			end
+		end
+	end)
+
+	repeat wait() until clicked
+	return position
+end
+
+-- Auto clique super rápido
+local function autoStab(pos)
+	print("✅ Iniciando Auto-Stab com armas válidas...")
+
+	while true do
+		if isValidWeaponEquipped() then
+			VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, true, game, 0)
+			VirtualInputManager:SendMouseButtonEvent(pos.X, pos.Y, 0, false, game, 0)
+		end
+		wait(0.05)
+	end
+end
+
+-- Execução principal
+local clickPos = waitForUserClick()
+autoStab(clickPos)
